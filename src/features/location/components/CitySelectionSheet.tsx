@@ -1,7 +1,8 @@
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Body, H1 } from '../../../components/ui/Typography';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Body, H2 } from '../../../components/ui/Typography';
 import { colors, spacing } from '../../../constants/theme';
 import { City } from '../types';
 
@@ -20,6 +21,7 @@ export function CitySelectionSheet({
   setSelectedCity,
   handleClose,
 }: CitySelectionSheetProps) {
+  const { t } = useTranslation();
   const snapPoints = useMemo(() => ['50%'], []);
 
   const handleCitySelect = useCallback((city: City) => {
@@ -37,7 +39,10 @@ export function CitySelectionSheet({
       handleIndicatorStyle={styles.indicator}
     >
       <BottomSheetView style={styles.container}>
-        <H1 style={styles.title}>Select City</H1>
+        <View style={styles.header}>
+          <H2 style={styles.title}>{t('common.location.selectCity')}</H2>
+          <View style={styles.separator} />
+        </View>
         {cities.map((city) => (
           <TouchableOpacity
             key={city.id}
@@ -72,9 +77,18 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: spacing.md,
   },
-  title: {
+  header: {
     marginBottom: spacing.lg,
+  },
+  title: {
     textAlign: 'center',
+    fontSize: 18,
+    marginBottom: spacing.sm,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginHorizontal: -spacing.md,
   },
   cityButton: {
     paddingVertical: spacing.md,

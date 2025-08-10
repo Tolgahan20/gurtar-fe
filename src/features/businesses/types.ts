@@ -5,13 +5,29 @@ export interface Category {
 
 export interface Business {
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
   name: string;
-  city: string;
+  description: string;
+  phone_number: string;
+  email: string;
   address: string;
-  cover_image_url?: string;
-  description?: string;
-  rating?: number;
-  categories: Category[];
+  city: string;
+  country: string;
+  postal_code: string;
+  logo_url: string;
+  cover_image_url: string;
+  is_verified: boolean;
+  is_active: boolean;
+}
+
+export interface BusinessFavorite {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  business: Business;
 }
 
 export interface BusinessesResponse {

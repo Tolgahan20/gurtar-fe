@@ -1,9 +1,13 @@
 import { auth } from './en/auth/auth';
-import { location } from './en/common';
+import { favorites, location, packages } from './en/common';
 import { onboarding } from './en/onboarding/onboarding';
 
 export const en = {
   auth,
   onboarding,
-  location,
+  common: {
+    location,
+    packages,
+    favorites,
+  },
 } as const; 

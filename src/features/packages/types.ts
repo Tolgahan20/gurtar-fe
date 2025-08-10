@@ -1,4 +1,3 @@
-import { Business } from '../businesses/types';
 
 export enum PackageSection {
   TOP_RATED = 'top_rated',
@@ -10,17 +9,22 @@ export enum PackageSection {
 
 export interface Package {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  image_url: string;
-  original_price: number;
   price: number;
-  estimated_weight: number;
+  original_price: number;
   quantity_available: number;
+  image_url?: string;
   pickup_start_time: string;
   pickup_end_time: string;
-  allergens: string[];
-  business: Business;
+  business: {
+    id: string;
+    name: string;
+    cover_image_url: string;
+    address: string;
+    city: string;
+    rating?: number;
+  };
 }
 
 export interface PackagesResponse {

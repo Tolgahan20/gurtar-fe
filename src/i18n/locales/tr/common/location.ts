@@ -2,6 +2,7 @@ export const location = {
   currentLocation: 'Konum',
   usingCurrentLocation: 'Mevcut Konum Kullanılıyor',
   selectCity: 'Şehir Seç',
+  chosenLocation: 'Seçili konum',
   locationPermissionDenied: 'Konum erişim izni reddedildi',
   locationError: 'Mevcut konum alınamadı',
   cities: {

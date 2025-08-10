@@ -1,84 +1,59 @@
 import React from 'react';
-import { FlatList, ListRenderItem, RefreshControl, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { EmptyState } from '../../../components/ui/EmptyState';
-import { colors, spacing } from '../../../constants/theme';
+import { spacing } from '../../../constants/theme';
 import { Package } from '../types';
 import { PackageCard } from './PackageCard';
+import { PackageSkeleton } from './PackageSkeleton';
 
 interface PackageListProps {
   packages: Package[];
+  loading?: boolean;
   onPackagePress?: (pkg: Package) => void;
-  onEndReached?: () => void;
-  refreshing?: boolean;
-  onRefresh?: () => void;
-  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
-  searchQuery?: string;
+  isFavorite: (packageId: string) => boolean;
+  onFavoritePress: (packageId: string) => void;
 }
 
 export function PackageList({
-  packages = [],
+  packages,
+  loading,
   onPackagePress,
-  onEndReached,
-  refreshing = false,
-  onRefresh,
-  ListHeaderComponent,
-  searchQuery,
+  isFavorite,
+  onFavoritePress,
 }: PackageListProps) {
-  const renderItem: ListRenderItem<Package> = ({ item }) => {
-    if (!item || !item.business) {
-      return null;
-    }
+  if (loading) {
     return (
-      <PackageCard
-        package={item}
-        onPress={() => onPackagePress?.(item)}
-      />
+      <View style={styles.container}>
+        {[...Array(2)].map((_, index) => (
+          <PackageSkeleton key={index} />
+        ))}
+      </View>
     );
-  };
+  }
 
-  const renderEmptyComponent = () => {
-    if (searchQuery) {
-      return (
-        <EmptyState
-          icon="search-outline"
-          title="No Results Found"
-          description={`We couldn't find any packages matching "${searchQuery}". Try adjusting your search or filters.`}
-          containerStyle={styles.emptyContainer}
-        />
-      );
-    }
-    
+  if (!packages?.length) {
     return (
       <EmptyState
         icon="fast-food-outline"
-        title="No Packages Available"
-        description="There are no packages available at the moment. Check back later for new offerings!"
-        containerStyle={styles.emptyContainer}
+        title="No Packages Found"
+        description="Try adjusting your filters or check back later for new packages."
+        iconSize={48}
       />
     );
-  };
+  }
 
   return (
-    <FlatList
-      data={packages}
-      renderItem={renderItem}
-      keyExtractor={(item) => item?.id || Math.random().toString()}
-      onEndReached={onEndReached}
-      onEndReachedThreshold={0.5}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
+    <View style={styles.container}>
+      {packages.map(pkg => (
+        <PackageCard
+          key={pkg.id}
+          package={pkg}
+          onPress={() => onPackagePress?.(pkg)}
+          isFavorite={isFavorite(pkg.business.id)}
+          onFavoritePress={onFavoritePress}
         />
-      }
-      ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={renderEmptyComponent}
-      contentContainerStyle={[
-        styles.contentContainer,
-        packages.length === 0 && styles.emptyContentContainer,
-      ]}
-    />
+      ))}
+    </View>
   );
 }
 
@@ -93,5 +68,9 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 0,
     minHeight: 400,
+  },
+  container: {
+    padding: spacing.md,
+    gap: spacing.md,
   },
 }); 

@@ -11,9 +11,15 @@ const getBaseURL = () => {
   if (__DEV__) {
     // In development, if running on a physical device, replace localhost/127.0.0.1 with your machine's IP
     if (Platform.OS !== 'web' && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
-      return baseUrl.replace('localhost', '192.168.1.51')
-                   .replace('127.0.0.1', '192.168.1.51');
+      return baseUrl.replace('localhost', '172.20.10.2')
+                   .replace('127.0.0.1', '172.20.10.2');
     }
+
+       // In development, if running on a physical device, replace localhost/127.0.0.1 with your machine's IP
+     //  if (Platform.OS !== 'web' && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
+       // return baseUrl.replace('localhost', '192.168.1.51')
+         //            .replace('127.0.0.1', '192.168.1.51');
+     // }
   
   }
   

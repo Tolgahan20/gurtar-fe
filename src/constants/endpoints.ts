@@ -25,3 +25,10 @@ export const PACKAGE_ENDPOINTS = {
   GET_BY_CATEGORY: (categoryId: string) => `/packages?category_id=${categoryId}`,
   GET_BY_LOCATION: (lat: number, lng: number) => `/packages?lat=${lat}&lng=${lng}`,
 } as const;
+
+
+export const FAVORITE_ENDPOINTS = {
+  GET_ALL: '/favorites',
+  ADD: '/favorites',
+  REMOVE: (id: string) => `/favorites/${id}`
+} as const;

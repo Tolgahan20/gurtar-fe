@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { Body } from '../../../components/ui/Typography';
+import { useTranslation } from 'react-i18next';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Body, H2 } from '../../../components/ui/Typography';
 import { colors, spacing } from '../../../constants/theme';
 import { Package } from '../types';
 
@@ -10,119 +11,179 @@ interface PackageCardProps {
   package: Package;
   onPress?: () => void;
   isHorizontal?: boolean;
-  onFavoritePress?: () => void;
-  isFavorite?: boolean;
+  isFavorite: boolean;
+  onFavoritePress: (businessId: string) => void;
 }
 
 export function PackageCard({ 
   package: pkg, 
   onPress, 
   isHorizontal = false,
+  isFavorite,
   onFavoritePress,
-  isFavorite = false,
 }: PackageCardProps) {
+  const { t } = useTranslation();
+
   if (!pkg || !pkg.business) {
     return null;
   }
 
   const { 
     business, 
-    name, 
+    title, 
     image_url,
     pickup_start_time,
     pickup_end_time,
+    price,
+    original_price,
+    quantity_available,
   } = pkg;
 
-  const price = typeof pkg.price === 'string' ? parseFloat(pkg.price) : (pkg.price || 0);
-  const original_price = typeof pkg.original_price === 'string' ? parseFloat(pkg.original_price) : (pkg.original_price || 0);
-  const quantity_available = typeof pkg.quantity_available === 'number' ? pkg.quantity_available : 0;
-
+  const formattedPrice = typeof price === 'string' ? parseFloat(price) : (price || 0);
+  const formattedOriginalPrice = typeof original_price === 'string' ? parseFloat(original_price) : (original_price || 0);
+  const discount = Math.round(((formattedOriginalPrice - formattedPrice) / formattedOriginalPrice) * 100);
   const pickupStartTime = pickup_start_time ? new Date(pickup_start_time) : new Date();
   const pickupEndTime = pickup_end_time ? new Date(pickup_end_time) : new Date();
 
-  const containerStyle: ViewStyle = {
-    ...styles.container,
-    ...(isHorizontal ? styles.horizontalContainer : styles.verticalContainer),
-  };
+  const containerStyle = [
+    styles.container,
+    isHorizontal ? styles.horizontalContainer : styles.verticalContainer,
+  ];
 
   return (
-    <View style={containerStyle}>
-      <TouchableOpacity 
-        style={styles.touchable} 
-        onPress={onPress}
-        activeOpacity={0.95}
-      >
-        <View style={styles.imageContainer}>
-          {image_url && (
-            <Image 
-              source={{ uri: image_url }} 
-              style={styles.image}
-              resizeMode="cover"
-            />
-          )}
-          {quantity_available > 0 && quantity_available <= 3 && (
-            <View style={styles.quantityBadge}>
-              <Body style={styles.quantityText}>{quantity_available} left</Body>
-            </View>
-          )}
-          <TouchableOpacity 
-            style={styles.favoriteButton} 
-            onPress={onFavoritePress}
-            activeOpacity={0.9}
-          >
-            <Ionicons 
-              name={isFavorite ? "heart" : "heart-outline"} 
-              size={22} 
-              color={isFavorite ? colors.error : colors.textLight} 
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Body style={styles.businessName} numberOfLines={1}>
-              {business?.name || ''}
-            </Body>
-            {business?.rating && (
-              <View style={styles.rating}>
-                <Ionicons name="star" size={12} color={colors.primary} />
-                <Body style={styles.ratingText}>{business.rating.toFixed(1)}</Body>
-              </View>
-            )}
-          </View>
-
-          <Body style={styles.title} numberOfLines={2}>{name || ''}</Body>
-
-          <View style={styles.footer}>
-            <View style={styles.collectInfo}>
-              <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
-              <Body style={styles.collectTime}>
-                {format(pickupStartTime, 'HH:mm')} - {format(pickupEndTime, 'HH:mm')}
+    <TouchableOpacity 
+      style={containerStyle} 
+      onPress={onPress}
+      activeOpacity={0.95}
+    >
+      <View style={styles.imageContainer}>
+        <Image 
+          source={{ uri: image_url }} 
+          style={styles.coverImage}
+          resizeMode="cover"
+        />
+        <View style={styles.overlay} />
+        
+        <View style={styles.badgeContainer}>
+          {quantity_available > 0 && (
+            <View style={[
+              styles.quantityBadge,
+              quantity_available <= 3 && styles.quantityBadgeUrgent
+            ]}>
+              <Ionicons 
+                name={quantity_available <= 3 ? "flash" : "cube-outline"} 
+                size={14} 
+                color={colors.textLight} 
+              />
+              <Body style={styles.badgeText}>
+                {quantity_available === 1 
+                  ? t('common.packages.card.quantity.one', { count: quantity_available })
+                  : t('common.packages.card.quantity.other', { count: quantity_available })
+                }
               </Body>
-              <Body style={styles.dot}>•</Body>
-              <Body style={styles.distance}>{business?.city || ''}</Body>
             </View>
+          )}
+          {discount > 0 && (
+            <View style={styles.discountBadge}>
+              <Ionicons name="pricetag" size={14} color={colors.textLight} />
+              <Body style={styles.badgeText}>
+                {t('common.packages.card.savePercent', { percent: discount })}
+              </Body>
+            </View>
+          )}
+        </View>
 
-            <View style={styles.priceContainer}>
-              <Body style={styles.originalPrice}>{original_price.toFixed(2)} TL</Body>
-              <Body style={styles.price}>{price.toFixed(2)} TL</Body>
+        <TouchableOpacity 
+          style={styles.favoriteButton}
+          onPress={() => onFavoritePress(business.id)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons 
+            name={isFavorite ? "heart" : "heart-outline"} 
+            size={24} 
+            color={isFavorite ? colors.error : colors.textLight} 
+          />
+        </TouchableOpacity>
+
+        <View style={styles.imageContent}>
+          <Body style={styles.packageTitle} numberOfLines={2}>
+            {title}
+          </Body>
+          <View style={styles.businessInfo}>
+            <View style={styles.businessNameContainer}>
+              <View style={styles.logoContainer}>
+                <Image 
+                  source={{ uri: business.cover_image_url }} 
+                  style={styles.logo}
+                  resizeMode="cover"
+                />
+              </View>
+              <View style={styles.nameRatingContainer}>
+                <H2 style={styles.businessName} numberOfLines={1}>
+                  {business.name}
+                </H2>
+                {business.rating && (
+                  <View style={styles.rating}>
+                    <Ionicons name="star" size={14} color={colors.primary} />
+                    <Body style={styles.ratingText}>{business.rating.toFixed(1)}</Body>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
         </View>
-      </TouchableOpacity>
-    </View>
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <Ionicons 
+              name="location" 
+              size={14} 
+              color={colors.textSecondary}
+              style={styles.infoIcon}
+            />
+            <Body style={styles.infoText}>{business.address}</Body>
+          </View>
+          <View style={styles.separator} />
+          <View style={styles.infoItem}>
+            <Ionicons 
+              name="time" 
+              size={14} 
+              color={colors.textSecondary}
+              style={styles.infoIcon}
+            />
+            <Body style={styles.infoText}>
+              {format(pickupStartTime, 'HH:mm')} - {format(pickupEndTime, 'HH:mm')}
+            </Body>
+          </View>
+        </View>
+
+        <View style={styles.priceRow}>
+          <View style={styles.priceContainer}>
+            <Body style={styles.originalPrice}>{formattedOriginalPrice.toFixed(2)} TL</Body>
+            <H2 style={styles.price}>{formattedPrice.toFixed(2)} TL</H2>
+          </View>
+          <View style={styles.savingsContainer}>
+            <Body style={styles.savingsText}>
+              {t('common.packages.card.save', { amount: (formattedOriginalPrice - formattedPrice).toFixed(2) })}
+            </Body>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.textLight,
-    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 8,
     elevation: 3,
   },
   horizontalContainer: {
@@ -132,105 +193,157 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
   },
-  touchable: {
-    flex: 1,
-  },
   imageContainer: {
-    height: 130,
+    height: 180,
     width: '100%',
     backgroundColor: colors.surfaceLight,
     position: 'relative',
   },
-  image: {
+  coverImage: {
     width: '100%',
     height: '100%',
   },
-  quantityBadge: {
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  badgeContainer: {
     position: 'absolute',
-    top: spacing.sm,
-    left: spacing.sm,
-    backgroundColor: colors.textLight,
+    top: spacing.md,
+    left: spacing.md,
+    gap: spacing.xs,
+  },
+  quantityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.textSecondary,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
-    borderRadius: 12,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: 8,
+    gap: 4,
   },
-  quantityText: {
-    color: colors.error,
+  quantityBadgeUrgent: {
+    backgroundColor: colors.error,
+  },
+  discountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 8,
+    gap: 4,
+  },
+  badgeText: {
+    color: colors.textLight,
     fontSize: 12,
     fontWeight: '600',
   },
   favoriteButton: {
     position: 'absolute',
-    bottom: -16,
+    top: spacing.md,
     right: spacing.md,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.textLight,
-    justifyContent: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     alignItems: 'center',
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  content: {
+  imageContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     padding: spacing.md,
-    paddingTop: spacing.md + 8,
+    paddingBottom: spacing.xl,
   },
-  header: {
+  packageTitle: {
+    color: colors.textLight,
+    fontSize: 14,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    marginBottom: spacing.lg,
+  },
+  businessInfo: {
+    marginTop: 'auto',
+  },
+  businessNameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
+  },
+  logoContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 50,
+    marginRight: spacing.sm,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
+  },
+  nameRatingContainer: {
+    flex: 1,
   },
   businessName: {
-    fontSize: 15,
-    fontWeight: '600',
-    flex: 1,
+    color: colors.textLight,
+    fontSize: 16,
+    marginBottom: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   rating: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 4,
   },
   ratingText: {
-    fontSize: 12,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  title: {
+    color: colors.textLight,
     fontSize: 13,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-    lineHeight: 18,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  footer: {
-    gap: spacing.xs,
+  content: {
+    padding: spacing.md,
+    paddingTop: spacing.sm,
   },
-  collectInfo: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    marginBottom: spacing.md,
   },
-  collectTime: {
-    fontSize: 12,
-    color: colors.textSecondary,
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  dot: {
-    fontSize: 12,
-    color: colors.textSecondary,
+  separator: {
+    width: 1,
+    height: 16,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.md,
   },
-  distance: {
-    fontSize: 12,
+  infoIcon: {
+    marginRight: 4,
+    opacity: 0.7,
+  },
+  infoText: {
     color: colors.textSecondary,
+    fontSize: 13,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   priceContainer: {
     flexDirection: 'row',
@@ -239,12 +352,23 @@ const styles = StyleSheet.create({
   },
   originalPrice: {
     color: colors.textSecondary,
-    fontSize: 12,
+    fontSize: 14,
     textDecorationLine: 'line-through',
   },
   price: {
     color: colors.primary,
-    fontSize: 16,
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  savingsContainer: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  savingsText: {
+    color: colors.primary,
+    fontSize: 12,
     fontWeight: '600',
   },
 }); 

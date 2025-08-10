@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import { Toast } from '../components/Toast';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -16,21 +16,27 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toast, setToast] = React.useState<ToastConfig | null>(null);
+  const [toast, setToast] = useState<ToastConfig | null>(null);
 
   const showToast = useCallback((config: ToastConfig) => {
     setToast(config);
-    if (config.duration) {
-      setTimeout(() => {
-        setToast(null);
-      }, config.duration);
-    }
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    setToast(null);
   }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {toast && <Toast type={toast.type} message={toast.message} />}
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          duration={toast.duration}
+          onDismiss={handleDismiss}
+        />
+      )}
     </ToastContext.Provider>
   );
 }

@@ -24,7 +24,7 @@ export function LocationSelector() {
           <Ionicons name="location-outline" size={18} color={colors.primary} />
         </View>
         <View style={styles.textContainer}>
-          <Body style={styles.label}>Chosen location</Body>
+          <Body style={styles.label}>{t('common.location.chosenLocation')}</Body>
           <View style={styles.valueContainer}>
             <Body style={styles.value}>
               {selectedCity?.name || t('common.location.selectCity')}
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.xxl,
     marginTop: spacing.md,
   },
   content: {
