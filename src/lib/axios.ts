@@ -1,28 +1,31 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 // Get the API URL based on the environment
 const getBaseURL = () => {
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
   const baseUrl = `${apiUrl}/api/v1`;
-  
+
   if (__DEV__) {
     // In development, if running on a physical device, replace localhost/127.0.0.1 with your machine's IP
-    if (Platform.OS !== 'web' && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
-      return baseUrl.replace('localhost', '172.20.10.2')
-                   .replace('127.0.0.1', '172.20.10.2');
-    }
+    // if (Platform.OS !== 'web' && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
+    //return baseUrl.replace('localhost', '172.20.10.2')
+    //.replace('127.0.0.1', '172.20.10.2');
+    //}
 
-       // In development, if running on a physical device, replace localhost/127.0.0.1 with your machine's IP
-     //  if (Platform.OS !== 'web' && (apiUrl.includes('localhost') || apiUrl.includes('127.0.0.1'))) {
-       // return baseUrl.replace('localhost', '192.168.1.51')
-         //            .replace('127.0.0.1', '192.168.1.51');
-     // }
-  
+    // In development, if running on a physical device, replace localhost/127.0.0.1 with your machine's IP
+    if (
+      Platform.OS !== "web" &&
+      (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1"))
+    ) {
+      return baseUrl
+        .replace("localhost", "192.168.1.51")
+        .replace("127.0.0.1", "192.168.1.51");
+    }
   }
-  
+
   return baseUrl;
 };
 
@@ -30,7 +33,7 @@ export const axiosInstance = axios.create({
   baseURL: getBaseURL(),
   timeout: 10000, // 10 seconds
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -38,24 +41,25 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('access_token');
+      const token = await AsyncStorage.getItem("access_token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      
+
       // Add additional headers for development on physical devices
-      if (__DEV__ && Platform.OS !== 'web') {
-        config.headers['Accept-Encoding'] = 'gzip, deflate';
-        config.headers['Accept'] = 'application/json';
+      if (__DEV__ && Platform.OS !== "web") {
+        config.headers["Accept-Encoding"] = "gzip, deflate";
+        config.headers["Accept"] = "application/json";
         // Add the Expo client version
         if (Constants.expoConfig?.version) {
-          config.headers['X-Expo-Client-Version'] = Constants.expoConfig.version;
+          config.headers["X-Expo-Client-Version"] =
+            Constants.expoConfig.version;
         }
       }
 
       // Log request in development
       if (__DEV__) {
-        console.log('API Request:', {
+        console.log("API Request:", {
           method: config.method,
           url: config.url,
           data: config.data,
@@ -64,12 +68,12 @@ axiosInstance.interceptors.request.use(
         });
       }
     } catch (error) {
-      console.error('Error reading token:', error);
+      console.error("Error reading token:", error);
     }
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
+    console.error("Request interceptor error:", error);
     return Promise.reject(error);
   }
 );
@@ -81,14 +85,14 @@ const RATE_LIMIT_RESET_INTERVAL = 5000; // 5 seconds
 const handleRateLimit = () => {
   if (!isRateLimitWarningShown) {
     isRateLimitWarningShown = true;
-    
+
     // Reset the flag after 5 seconds
     setTimeout(() => {
       isRateLimitWarningShown = false;
     }, RATE_LIMIT_RESET_INTERVAL);
 
     // Return a user-friendly message
-    return 'You are making too many requests. Please wait a moment before trying again.';
+    return "You are making too many requests. Please wait a moment before trying again.";
   }
   return null;
 };
@@ -98,7 +102,7 @@ axiosInstance.interceptors.response.use(
   (response) => {
     // Log response in development
     if (__DEV__) {
-      console.log('API Response:', {
+      console.log("API Response:", {
         status: response.status,
         data: response.data,
         headers: response.headers,
@@ -109,15 +113,17 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     // Handle network errors
     if (!error.response) {
-      console.error('Network Error:', error.message);
-      return Promise.reject(new Error('Network error. Please check your connection.'));
+      console.error("Network Error:", error.message);
+      return Promise.reject(
+        new Error("Network error. Please check your connection.")
+      );
     }
 
     const originalRequest = error.config;
 
     // Log error in development
     if (__DEV__) {
-      console.error('API Error:', {
+      console.error("API Error:", {
         url: originalRequest?.url,
         method: originalRequest?.method,
         status: error.response?.status,
@@ -140,9 +146,9 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await AsyncStorage.getItem('refresh_token');
+        const refreshToken = await AsyncStorage.getItem("refresh_token");
         if (!refreshToken) {
-          throw new Error('No refresh token available');
+          throw new Error("No refresh token available");
         }
 
         const response = await axiosInstance.post(`/auth/refresh-token`, {
@@ -150,13 +156,13 @@ axiosInstance.interceptors.response.use(
         });
 
         const { access_token } = response.data;
-        await AsyncStorage.setItem('access_token', access_token);
+        await AsyncStorage.setItem("access_token", access_token);
 
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         // Handle refresh token failure (e.g., logout user)
-        await AsyncStorage.multiRemove(['access_token', 'refresh_token']);
+        await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
         throw refreshError;
       }
     }
@@ -166,4 +172,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance; 
+export default axiosInstance;

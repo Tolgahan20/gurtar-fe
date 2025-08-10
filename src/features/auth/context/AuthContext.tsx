@@ -6,7 +6,7 @@ import { ActivityIndicator, View } from 'react-native';
 interface AuthContextType {
   isSignedIn: boolean;
   isLoading: boolean;
-  signIn: (token: string) => Promise<void>;
+  signIn: (tokens: { access_token: string; refresh_token: string }) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -46,8 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkToken = async () => {
     try {
-      const token = await AsyncStorage.getItem('access_token');
-      setIsSignedIn(!!token);
+      const [accessToken, refreshToken] = await Promise.all([
+        AsyncStorage.getItem('access_token'),
+        AsyncStorage.getItem('refresh_token'),
+      ]);
+      setIsSignedIn(!!(accessToken && refreshToken));
     } catch (error) {
       console.error('Error checking token:', error);
     } finally {
@@ -55,9 +58,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (token: string) => {
+  const signIn = async (tokens: { access_token: string; refresh_token: string }) => {
     try {
-      await AsyncStorage.setItem('access_token', token);
+      await Promise.all([
+        AsyncStorage.setItem('access_token', tokens.access_token),
+        AsyncStorage.setItem('refresh_token', tokens.refresh_token),
+      ]);
       setIsSignedIn(true);
     } catch (error) {
       console.error('Error signing in:', error);
@@ -67,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await AsyncStorage.removeItem('access_token');
+      await AsyncStorage.multiRemove(['access_token', 'refresh_token']);
       setIsSignedIn(false);
     } catch (error) {
       console.error('Error signing out:', error);

@@ -1,5 +1,5 @@
 import { auth } from './en/auth/auth';
-import { categories, favorites, location, navigation, packages } from './en/common';
+import { categories, favorites, location, navigation, packages, profile } from './en/common';
 import { onboarding } from './en/onboarding/onboarding';
 
 export const en = {
@@ -11,5 +11,6 @@ export const en = {
     favorites,
     navigation,
     categories,
+    profile,
   },
 } as const; 

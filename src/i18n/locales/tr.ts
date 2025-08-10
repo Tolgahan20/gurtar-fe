@@ -1,5 +1,5 @@
 import { auth } from './tr/auth/auth';
-import { categories, favorites, location, navigation, packages } from './tr/common';
+import { categories, favorites, location, navigation, packages, profile } from './tr/common';
 import { onboarding } from './tr/onboarding/onboarding';
 
 export const tr = {
@@ -10,6 +10,7 @@ export const tr = {
     packages,
     favorites,
     navigation,
-    categories
+    categories,
+    profile,
   },
 } as const; 

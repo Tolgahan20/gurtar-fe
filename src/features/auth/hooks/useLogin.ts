@@ -52,11 +52,20 @@ export const useLogin = () => {
     try {
       setLoading(true);
       const response = await login(form);
-      await signIn(response.data.access_token);
-      showToast(t('auth.messages.loginSuccess'), 'success');
+      await signIn({
+        access_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+      });
+      showToast({
+        message: t('auth.messages.loginSuccess'),
+        type: 'success'
+      });
     } catch (error: any) {
       console.error('Login error:', error);
-      showToast(error.message || t('auth.messages.loginError'), 'error');
+      showToast({
+        message: error.message || t('auth.messages.loginError'),
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,18 @@
-export { categories } from './categories';
-export { favorites } from './favorites';
-export { location } from './location';
-export { navigation } from './navigation';
-export { packages } from './packages';
+import { categories } from './categories';
+import { favorites } from './favorites';
+import { location } from './location';
+import { navigation } from './navigation';
+import { packages } from './packages';
+import { profile } from './profile';
+
+export { categories, favorites, location, navigation, packages, profile };
+
+export const common = {
+  location,
+  packages,
+  navigation,
+  categories,
+  favorites,
+  profile,
+} as const;
 
