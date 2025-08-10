@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet } from 'react-native';
 import { spacing } from '../../../constants/theme';
 import { Category } from '../types';
@@ -15,6 +16,7 @@ export function CategoryList({
   selectedCategoryId,
   categories,
 }: CategoryListProps) {
+  const { t } = useTranslation();
 
   return (
     <ScrollView
@@ -26,8 +28,8 @@ export function CategoryList({
         key="all"
         category={{
           id: 'all',
-          name: 'All',
-          description: 'All categories',
+          name: t('common.categories.all.name'),
+          description: t('common.categories.all.description'),
           parent_id: null,
         }}
         isSelected={!selectedCategoryId}

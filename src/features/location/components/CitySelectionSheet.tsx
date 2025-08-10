@@ -57,7 +57,7 @@ export function CitySelectionSheet({
                 ? { ...styles.cityText, ...styles.selectedText }
                 : styles.cityText
             }>
-              {city.name}
+              {t(`common.location.cities.${city.id}`)}
             </Body>
           </TouchableOpacity>
         ))}

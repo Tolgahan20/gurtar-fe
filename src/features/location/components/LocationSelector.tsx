@@ -27,7 +27,10 @@ export function LocationSelector() {
           <Body style={styles.label}>{t('common.location.chosenLocation')}</Body>
           <View style={styles.valueContainer}>
             <Body style={styles.value}>
-              {selectedCity?.name || t('common.location.selectCity')}
+              {selectedCity?.id 
+                ? t(`common.location.cities.${selectedCity.id}`)
+                : t('common.location.selectCity')
+              }
             </Body>
             <Ionicons name="chevron-down" size={14} color={colors.textSecondary} />
           </View>
